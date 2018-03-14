@@ -1,0 +1,12 @@
+#C++ builds
+csv2json
+
+#JSON Files
+*.json
+
+# CSV Files
+*.csv
+
+# other
+.DS_Store
+.vscode
