@@ -12,10 +12,44 @@ using namespace std;
         vector<string> objs;
         vector<string> column;
 }
-class elements{
+class element{
     private:
         vector<string
 }*/
+vector<size_t> MapComma(string str){
+    vector<size_t> comma;
+    for( int i = 0; i < str.length(); ++i){
+        if(str[i] == ',')
+            comma.push_back(i);
+    }
+    return comma;
+}
+
+class Column {
+    public:
+        size_t head;
+        size_t tail;
+        string data;
+
+        size_t len(){ return tail - head; }
+};
+class Row {
+    public:
+        vector<Column> column;
+        vector<size_t> comma;
+        string line;
+
+        /*void map(string line){
+            vector<size_t> comma;
+            for( int i = 0; i < line.length(); ++i){
+                if(line[i] == ',')
+                    comma.push_back(i);
+            }
+        }*/
+
+};
+
+
 
 int main(int argc, char* const argv[]){
 
@@ -39,11 +73,12 @@ int main(int argc, char* const argv[]){
         //cout<<subArgs<<endl;
         
         // Locates commas
-        vector<size_t> comma;
+        /*vector<size_t> comma;
         for( int i = 0; i < subArgs.length(); ++i){
             if(subArgs[i] == ',')
                 comma.push_back(i);
-        }
+        }*/
+        vector<size_t> comma = MapComma(subArgs);
         //cout<<comma.size()<<endl;
 
         // Decodes the command arguements
@@ -52,23 +87,40 @@ int main(int argc, char* const argv[]){
             if(i == 0)
                 order.push_back(subArgs.substr(0, comma[i]));
 
-            if( i == comma.size() )
+            if( i == comma.size() ){
                 order.push_back(subArgs.substr(comma[i-1] + 1));
+            }
             else{
                 size_t length = comma[i+1] - comma[i];
                 order.push_back(subArgs.substr(comma[i] + 1, length - 1));   
             }
         }
-        /*for( int i = 0; i < order.size(); ++i){
+        for( int i = 0; i < order.size(); ++i){
             cout<<order[i]<<endl;
+        }
+
+        /*vector<Column> csvMap;
+        for( int i = 0; i < order.size(); ++i){
+
+            //string header = getline(file,line);
+            for( int i = 0; i < header.size(); ++i){
+                if(i == 0)
+                    order.push_back(subArgs.substr(0, comma[i]));
+
+                if( i == comma.size() ){
+                    order.push_back(subArgs.substr(comma[i-1] + 1));
+                }
+                else{
+                    size_t length = comma[i+1] - comma[i];
+                     order.push_back(subArgs.substr(comma[i] + 1, length - 1));   
+                 }
+            }*/
+            /*while(getline(file, line)){
+        
+            }
+            //data.push_back(element);
+            file.clear();
+            file.seekg(0, ios::beg);
         }*/
-
-        //while(getline(file, line)){
-        
-
-        
-        //}
-        //inputFile.clear();
-        //inputFile.seekg(0, ios::beg);
     }
 }
