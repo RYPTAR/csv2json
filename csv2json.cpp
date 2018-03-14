@@ -31,17 +31,16 @@ int main(int argc, char* const argv[]){
         //cout<<command<<endl;
         //cout<<order<<endl;
 
-        int count = 0;
+        vector<int> comma;
         for( int i = 0; i < subArgs.length(); ++i){
             if(subArgs[i] == ',')
-                ++count;
+                comma.push_back(i);
         }
-        cout<<count<<endl;
-        //vector<string> order = new vector<string>;
-        //for( int i = 0; i < count + 2){
-            //order
-        //for(
-        //while(){
+        cout<<comma.size()<<endl;
+        /*vector<string> order;
+        for( int i = 0; i < comma.size() + 2){
+            order
+        }*/
 
         //while(getline(file, line)){
         
