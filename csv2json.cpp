@@ -16,22 +16,11 @@ class element{
     private:
         vector<string
 }*/
-vector<size_t> MapComma(string str){
-    vector<size_t> comma;
-    for( int i = 0; i < str.length(); ++i){
-        if(str[i] == ',')
-            comma.push_back(i);
-    }
-    return comma;
-}
-
 class Column {
     public:
         size_t head;
         size_t tail;
         string data;
-
-        size_t len(){ return tail - head; }
 };
 class Row {
     public:
@@ -49,7 +38,47 @@ class Row {
 
 };
 
+// Locates commas
+vector<size_t> MapCSV(string str){
+    vector<size_t> comma;
+    for( int i = 0; i < str.length(); ++i){
+        if(str[i] == ',')
+            comma.push_back(i);
+    }
+    return comma;
+}
+// Decodes the column rows
+vector<Column> DecodeRow(string str, vector<size_t> map){
+    vector<Column> column;
+    Column temp;
+    for( int i = 0; i < map.size(); ++i){
 
+        // First element handler
+        if(i == 0){
+            temp.head = 0;
+            temp.tail = map[i] - 0;
+            temp.data = str.substr(temp.head, temp.tail);
+            column.push_back(temp);
+        }
+
+        // Last element handler
+        if( i == map.size() ){
+            temp.head = map[i-1] + 1;
+            temp.tail = str.length() - temp.head; 
+        }
+
+        // Middle element handler
+        else{
+            temp.head = map[i] + 1;
+            // TODO: FIX THIS FUCKING TAIL!
+            temp.tail = (map[i+1] - map[i]) - 1;
+        }
+
+        temp.data = str.substr(temp.head, temp.tail);
+        column.push_back(temp);
+    }
+    return column;
+}
 
 int main(int argc, char* const argv[]){
 
@@ -73,17 +102,12 @@ int main(int argc, char* const argv[]){
         //cout<<subArgs<<endl;
         
         // Locates commas
-        /*vector<size_t> comma;
-        for( int i = 0; i < subArgs.length(); ++i){
-            if(subArgs[i] == ',')
-                comma.push_back(i);
-        }*/
-        vector<size_t> comma = MapComma(subArgs);
+        vector<size_t> comma = MapCSV(subArgs);
         //cout<<comma.size()<<endl;
 
         // Decodes the command arguements
-        vector<string> order;
-        for( int i = 0; i < comma.size(); ++i){
+        vector<Column> order = DecodeRow(subArgs, comma);
+        /*for( int i = 0; i < comma.size(); ++i){
             if(i == 0)
                 order.push_back(subArgs.substr(0, comma[i]));
 
@@ -94,10 +118,11 @@ int main(int argc, char* const argv[]){
                 size_t length = comma[i+1] - comma[i];
                 order.push_back(subArgs.substr(comma[i] + 1, length - 1));   
             }
-        }
-        for( int i = 0; i < order.size(); ++i){
-            cout<<order[i]<<endl;
-        }
+        }*/
+        /*for( int i = 0; i < order.size(); ++i){
+            cout<<"head= "<<order[i].head<<" tail= "<<order[i].tail<<" data= "<<order[i].data<<endl;
+            //cout<<"data= "<<order[i].data<<endl;
+        }*/
 
         /*vector<Column> csvMap;
         for( int i = 0; i < order.size(); ++i){
