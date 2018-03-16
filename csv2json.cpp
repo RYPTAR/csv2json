@@ -37,12 +37,16 @@ class Row {
         }*/
 
 };
+class Rule {
+    public:
+        vector<string> rule;
+};
 
 // Locates commas
-vector<size_t> MapCSV(string str){
+vector<size_t> MapSV(string str, char delimitor){
     vector<size_t> comma;
     for( int i = 0; i < str.length(); ++i){
-        if(str[i] == ',')
+        if(str[i] == delimitor)
             comma.push_back(i);
     }
     return comma;
@@ -80,6 +84,42 @@ vector<Column> DecodeRow(string str, vector<size_t> map){
     return column;
 }
 
+// 3AM FIRE! Lulz
+// Creates the JSON Structure Rules
+vector<Rule> CreateRules(string str, vector<size_t> map){
+
+    // Creates a order of data by decoded the row of data
+    vector<Column> order = DecodeRow(str, map);
+    vector<Rule> rules;
+
+    // Depending on how many columns it scans through
+    for(int i = 0; i < order.size(); ++i){
+
+        //length of the data element
+        string line = order[i].data;
+        Rule tempR;
+
+        if(line.length() > 1){
+
+            // Creates a temp vector column that decodes a line with the mapped SV data
+            //      using '+' as the delimitor 
+            vector <Column> tempC = DecodeRow(line, MapSV(line, '+'));
+
+            // Depending on how many sub column there were rebuild
+            for(int j = 0; j < tempC.size(); ++j){
+                tempR.rule.push_back(tempC[j].data);
+            }
+        }
+        else
+            tempR.rule.push_back(line);
+
+        rules.push_back(tempR);
+
+    }
+
+    return rules;
+}
+
 int main(int argc, char* const argv[]){
 
     // Pulls in file
@@ -102,27 +142,24 @@ int main(int argc, char* const argv[]){
         //cout<<subArgs<<endl;
         
         // Locates commas
-        vector<size_t> comma = MapCSV(subArgs);
+        vector<size_t> comma = MapSV(subArgs, ',');
         //cout<<comma.size()<<endl;
 
         // Decodes the command arguements
-        vector<Column> order = DecodeRow(subArgs, comma);
-        /*for( int i = 0; i < comma.size(); ++i){
-            if(i == 0)
-                order.push_back(subArgs.substr(0, comma[i]));
-
-            if( i == comma.size() ){
-                order.push_back(subArgs.substr(comma[i-1] + 1));
-            }
-            else{
-                size_t length = comma[i+1] - comma[i];
-                order.push_back(subArgs.substr(comma[i] + 1, length - 1));   
-            }
-        }*/
+        //vector<Column> order = DecodeRow(subArgs, comma);
         /*for( int i = 0; i < order.size(); ++i){
             cout<<"head= "<<order[i].head<<" tail= "<<order[i].tail<<" data= "<<order[i].data<<endl;
             //cout<<"data= "<<order[i].data<<endl;
         }*/
+
+
+        vector<Rule> order = CreateRules(subArgs, comma);
+        for( int i = 0; i < order.size(); ++i){
+            for( int j = 0; j < order[i].rule.size(); ++j){
+                cout<<"i= "<<i<<" j= "<<j<<" value= "<<order[i].rule[j]<<endl;
+            }
+        }
+        
 
         /*vector<Column> csvMap;
         for( int i = 0; i < order.size(); ++i){
