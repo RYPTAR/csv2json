@@ -22,27 +22,24 @@ class Column {
         size_t tail;
         string data;
 };
-class Row {
+/*class Row {
     public:
         vector<Column> column;
         vector<size_t> comma;
         string line;
-
-        /*void map(string line){
-            vector<size_t> comma;
-            for( int i = 0; i < line.length(); ++i){
-                if(line[i] == ',')
-                    comma.push_back(i);
-            }
-        }*/
-
-};
+};*/
 class Rule {
     public:
-        vector<string> rule;
+        vector<int> rule;
+};
+class Obj {
+    public:
+        string name;
+        vector<Obj> obj;
 };
 
-// Locates commas
+// Locates delimitors within a string 
+//      i.e csv row
 vector<size_t> MapSV(string str, char delimitor){
     vector<size_t> comma;
     for( int i = 0; i < str.length(); ++i){
@@ -51,7 +48,8 @@ vector<size_t> MapSV(string str, char delimitor){
     }
     return comma;
 }
-// Decodes the column rows
+// Isolates elements using a map of delimitors within a string 
+///     i.e csv columns
 vector<Column> DecodeRow(string str, vector<size_t> map){
     vector<Column> column;
     Column temp;
@@ -66,15 +64,14 @@ vector<Column> DecodeRow(string str, vector<size_t> map){
         }
 
         // Last element handler
-        if( i == map.size() ){
-            temp.head = map[i-1] + 1;
+        if( i == map.size() - 1 ){
+            temp.head = map[i] + 1;
             temp.tail = str.length() - temp.head; 
         }
 
-        // Middle element handler
+        // Middle elements handler
         else{
             temp.head = map[i] + 1;
-            // TODO: FIX THIS FUCKING TAIL!
             temp.tail = (map[i+1] - map[i]) - 1;
         }
 
@@ -83,9 +80,18 @@ vector<Column> DecodeRow(string str, vector<size_t> map){
     }
     return column;
 }
-
+// Turns a decoded row into a list of string
+vector<string> SanitizeRow(vector<Column> row){
+    vector<string> list;
+    for(int i = 0; i < row.size(); ++i){
+        list.push_back(row[i].data);
+    }
+    return list;
+}
 // 3AM FIRE! Lulz
 // Creates the JSON Structure Rules
+//      i.e how the user wants to rearrange their JSON heirarchy
+//          depending on the columns of their csv
 vector<Rule> CreateRules(string str, vector<size_t> map){
 
     // Creates a order of data by decoded the row of data
@@ -107,17 +113,69 @@ vector<Rule> CreateRules(string str, vector<size_t> map){
 
             // Depending on how many sub column there were rebuild
             for(int j = 0; j < tempC.size(); ++j){
-                tempR.rule.push_back(tempC[j].data);
+                tempR.rule.push_back(stoi(tempC[j].data));
             }
         }
         else
-            tempR.rule.push_back(line);
+            tempR.rule.push_back(stoi(line));
 
         rules.push_back(tempR);
 
     }
 
     return rules;
+}
+// Organizes rows columns into a vector with a JSON style hierarchy 
+void buildTree(int i, const vector<string> &column, const vector<Rule> &order, vector<Obj> &branch){
+
+    // Check if there is any work left to do in order set
+    if(i < order.size()){
+        for(int j = 0; j < order[i].rule.size(); ++j){
+            /*cout<<"i: "<<i<<" j: "<<j<<endl;
+            cout<<"sizeO: "<<order.size()<<" sizeR: "<<order[i].rule.size()<<endl;
+            cout<<"************************"<<endl;*/
+
+            // Position of column
+            int pos = order[i].rule[j];
+            Obj temp;
+            temp.name = column[pos];
+
+            // Don't iterate is the branch is empty
+            if(branch.size() < 1){
+                /*cout<<"PUSH 1"<<endl;
+                cout<<"level= "<<i<<" data= "<<temp.name<<endl;*/
+                branch.push_back(temp);
+                pos = 0;
+            }
+            else{
+
+                // Checks for unique values
+                for(int k = 0; k < branch.size(); ++k){
+
+                    // If value isn't unique, save position for 
+                    //   the next level of the heirarchy
+                    if(branch[k].name == column[i]){
+                        pos = k;
+                        break;
+                    }
+
+                    // Push if unique, save position for
+                    //   the next level in heirarchy
+                    else if(k == branch.size() - 1){
+                        /*cout<<"PUSH 2"<<endl;
+                        cout<<"level= "<<i<<" data= "<<temp.name<<endl;*/
+                        branch.push_back(temp);
+                        pos = k+1;
+                    }
+                }
+            }
+
+            // Recall function at a lower level of the JSON heirarchy
+            buildTree(i+1, column, order, branch[pos].obj);
+        }
+    }   
+
+    return;
 }
 
 int main(int argc, char* const argv[]){
@@ -142,24 +200,36 @@ int main(int argc, char* const argv[]){
         //cout<<subArgs<<endl;
         
         // Locates commas
-        vector<size_t> comma = MapSV(subArgs, ',');
+        //vector<size_t> comma = MapSV(subArgs, ',');
         //cout<<comma.size()<<endl;
 
         // Decodes the command arguements
-        //vector<Column> order = DecodeRow(subArgs, comma);
-        /*for( int i = 0; i < order.size(); ++i){
+        /*vector<Column> order = DecodeRow(subArgs, comma);
+        for( int i = 0; i < order.size(); ++i){
             cout<<"head= "<<order[i].head<<" tail= "<<order[i].tail<<" data= "<<order[i].data<<endl;
             //cout<<"data= "<<order[i].data<<endl;
         }*/
 
-
-        vector<Rule> order = CreateRules(subArgs, comma);
-        for( int i = 0; i < order.size(); ++i){
+        // Creates the JSON Structure Rules
+        const vector<Rule> order = CreateRules(subArgs, MapSV(subArgs, ','));
+        /*for( int i = 0; i < order.size(); ++i){
             for( int j = 0; j < order[i].rule.size(); ++j){
-                cout<<"i= "<<i<<" j= "<<j<<" value= "<<order[i].rule[j]<<endl;
+                cout<<"i: "<<i<<" j: "<<j<<" size: "<<order[i].rule.size()<<" value: "<<order[i].rule[j]<<endl;
             }
+        }*/
+        vector<Obj> jsonTree;
+        while(getline(file,line)){
+            //cout<<"While"<<endl;
+            vector<Column> row = DecodeRow(line, MapSV(line, ','));
+            const vector<string> columnData = SanitizeRow(row);
+            
+            // Start the JSON building process
+            buildTree(0, columnData, order, jsonTree);
+
+            break;
         }
-        
+
+        //outputJSON(0, jsonTree);
 
         /*vector<Column> csvMap;
         for( int i = 0; i < order.size(); ++i){
