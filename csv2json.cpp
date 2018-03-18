@@ -80,11 +80,22 @@ vector<Column> DecodeRow(string str, vector<size_t> map){
     }
     return column;
 }
+//Trims whitespace
+string trim(const string& str)
+{
+    size_t first = str.find_first_not_of(" \n\t\r\v\f");
+    if (string::npos == first)
+    {
+        return str;
+    }
+    size_t last = str.find_last_not_of(" \n\t\r\v\f");
+    return str.substr(first, (last - first + 1));
+}
 // Turns a decoded row into a list of string
 vector<string> SanitizeRow(vector<Column> row){
     vector<string> list;
     for(int i = 0; i < row.size(); ++i){
-        list.push_back(row[i].data);
+        list.push_back(trim(row[i].data));
     }
     return list;
 }
@@ -139,6 +150,8 @@ void buildTree(int i, const vector<string> &column, const vector<Rule> &order, v
             int pos = order[i].rule[j];
             Obj temp;
             temp.name = column[pos];
+            //cout<<temp.name.length()<<" "<<temp.name<<endl;
+            //temp.name = column[pos];
 
             // Don't iterate is the branch is empty
             if(branch.size() < 1){
@@ -174,6 +187,39 @@ void buildTree(int i, const vector<string> &column, const vector<Rule> &order, v
             buildTree(i+1, column, order, branch[pos].obj);
         }
     }   
+
+    return;
+}
+// Prints JSON
+void outputJSON(int i, vector<Obj> &branch){
+    string tabs;
+    if( i == 0 )
+        cout<<"{"<<endl;
+    for(int j = 0; j <= i; ++j){
+        tabs+="  ";
+    }
+
+    for(int j = 0; j < branch.size(); ++j){
+        //cout<<branch[j].name<<endl;
+        //cout<<tabs<<"\""<<branch[j].name<<"\":{"<<endl;
+
+        if(!branch[j].obj.empty()){
+            cout<<tabs<<"\""<<branch[j].name<<"\":{"<<endl;
+            outputJSON(i+1, branch[j].obj);
+            cout<<tabs<<"}";
+        }
+        else{
+            cout<<tabs<<"\""<<branch[j].name<<"\":{}";
+        }
+
+
+        if(j < branch.size() - 1)
+            cout<<","<<endl;
+        else
+            cout<<endl;
+    }
+    if( i == 0 )
+        cout<<"}"<<endl;
 
     return;
 }
@@ -218,18 +264,19 @@ int main(int argc, char* const argv[]){
             }
         }*/
         vector<Obj> jsonTree;
-        while(getline(file,line)){
+        int i = 1;
+        while(getline(file,line) && i < 3){
             //cout<<"While"<<endl;
             vector<Column> row = DecodeRow(line, MapSV(line, ','));
             const vector<string> columnData = SanitizeRow(row);
             
             // Start the JSON building process
             buildTree(0, columnData, order, jsonTree);
-
             break;
+            //i++;
         }
 
-        //outputJSON(0, jsonTree);
+        outputJSON(0, jsonTree);
 
         /*vector<Column> csvMap;
         for( int i = 0; i < order.size(); ++i){
