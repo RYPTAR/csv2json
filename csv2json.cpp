@@ -314,13 +314,13 @@ int main(int argc, char* const argv[]){
         }
 
         file.close();
-        //ofstream jsonFile{"data.json"};
-        //jsonfile.open ("data.json");
-        cout<<"Tree: "<<jsonTree.size()<<endl;
+        ofstream jsonFile;
+        jsonFile.open("data.json");
+        //cout<<"Tree: "<<jsonTree.size()<<endl;
         string result;
         outputJSON(0,jsonTree,result);
-        cout<<result;
-        /*jsonFile << outputJSON(0, jsonTree, result);
-        jsonFile.close();*/
+        //cout<<result;
+        jsonFile << result;
+        jsonFile.close();
     }
 }
