@@ -1,3 +1,17 @@
+/***
+ * 
+ *            ---- csv2json.cpp ----
+ *          
+ *  created by: RYPTAR aka Ray Antonio De Jesus    
+ *  date: 19/03/2018  
+ * 
+ *  description:
+ *         This tool takes in csv data and tranlates the data into JSON.
+ *         Formatting of the JSON data is defined by user arguments
+ * 
+ * 
+ * 
+***/
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -6,37 +20,28 @@
 
 using namespace std;
 
-/*class JSONformat{
-    private:
-        string head;
-        vector<string> objs;
-        vector<string> column;
-}
-class element{
-    private:
-        vector<string
-}*/
+//*********** Objects **************
+
+// Stores column data as well as the location of commas
 class Column {
     public:
         size_t head;
         size_t tail;
         string data;
 };
-/*class Row {
-    public:
-        vector<Column> column;
-        vector<size_t> comma;
-        string line;
-};*/
+// Stores the JSON object hierarchy rules using column numbers(int)
 class Rule {
     public:
         vector<int> rule;
 };
+// Stores the JSON object and relative JSON object information
 class Obj {
     public:
         string name;
         vector<Obj> obj;
 };
+
+//*********** Functions **************
 
 // Locates delimitors within a string 
 //      i.e csv row
@@ -80,13 +85,17 @@ vector<Column> DecodeRow(string str, vector<size_t> map){
     }
     return column;
 }
-//Trims whitespace
+//Trims all whitespace
 string trim(const string& str)
 {
+    // Checks for all whitespace delimitor
     size_t first = str.find_first_not_of(" \n\t\r\v\f");
+
+    // Prevents empty data entries
     if (string::npos == first){
-        return "NONE";
+        return "------";
     }
+
     size_t last = str.find_last_not_of(" \n\t\r\v\f");
     return str.substr(first, (last - first + 1));
 }
@@ -111,7 +120,7 @@ vector<Rule> CreateRules(string str, vector<size_t> map){
     // Depending on how many columns it scans through
     for(int i = 0; i < order.size(); ++i){
 
-        //length of the data element
+        // Length of the data element
         string line = order[i].data;
         Rule tempR;
 
@@ -130,12 +139,11 @@ vector<Rule> CreateRules(string str, vector<size_t> map){
             tempR.rule.push_back(stoi(line));
 
         rules.push_back(tempR);
-
     }
 
     return rules;
 }
-// Organizes rows columns into a vector with a JSON style hierarchy 
+// Organizes row columns into a vector with a JSON style hierarchy 
 void buildTree(int i, vector<string> &column, const vector<Rule> &order, vector<Obj> &branch){
 
     //cout<<"---------------------"<<endl;
@@ -185,58 +193,32 @@ void buildTree(int i, vector<string> &column, const vector<Rule> &order, vector<
                 }
             }
 
+            // Recalls function at lower levels of the tree
             buildTree(i+1, column, order, branch[pos].obj);
         }
     }   
 
     return;
 }
-// Prints JSON
-/*void coutJSON(int i, vector<Obj> &branch){
-    string tabs;
-    if( i == 0 )
-        cout<<"{"<<endl;
-    for(int j = 0; j <= i; ++j){
-        tabs+="  ";
-    }
-
-    for(int j = 0; j < branch.size(); ++j){
-        //cout<<branch[j].name<<endl;
-        //cout<<tabs<<"\""<<branch[j].name<<"\":{"<<endl;
-
-        if(!branch[j].obj.empty()){
-            cout<<tabs<<"\""<<branch[j].name<<"\":{"<<endl;
-            outputJSON(i+1, branch[j].obj);
-            cout<<tabs<<"}";
-        }
-        else{
-            cout<<tabs<<"\""<<branch[j].name<<"\":{}";
-        }
-
-
-        if(j < branch.size() - 1)
-            cout<<","<<endl;
-        else
-            cout<<endl;
-    }
-    if( i == 0 )
-        cout<<"}"<<endl;
-
-    return;
-}*/
-
+// Prints JSON into a string
 void outputJSON(int i, vector<Obj> &branch, string &result){
+
+    // Formats the tabs based on how low in the tree you are
     string tabs;
+
+    // Starting brace
     if( i == 0 )
         result+="{\n";
     for(int j = 0; j <= i; ++j){
         tabs+="  ";
     }
 
+    // Starts at the top of the tree and searches down each branch
     for(int j = 0; j < branch.size(); ++j){
         //cout<<branch[j].name<<endl;
         //cout<<tabs<<"\""<<branch[j].name<<"\":{"<<endl;
 
+        // If a branch has children branches it recalls the outputJSON
         if(!branch[j].obj.empty()){
             result+=tabs+"\""+branch[j].name+"\":{\n";
             outputJSON(i+1, branch[j].obj, result);
@@ -246,12 +228,14 @@ void outputJSON(int i, vector<Obj> &branch, string &result){
             result+=tabs+"\""+branch[j].name+"\":{}";
         }
 
-
+        // If a branch has more sibling it adds a comma 
         if(j < branch.size() - 1)
             result+=",\n";
         else
             result+="\n";
     }
+
+    // Ending brace
     if( i == 0 )
         result+="}\n";
 
@@ -264,14 +248,18 @@ int main(int argc, char* const argv[]){
     ifstream file(argv[1]);
     string line;
 
-    //TODO: multiple arguements
+    // TODO: custom output file names
+
+    // TODO: multiple arguements
+
+    // TODO: more JSON styling manipulation within struct arguements
 
     // Decodes command
     string args = string(argv[2]);
     string command = args.substr(0,args.find('['));
     //cout<<command<<endl;
 
-
+    // "struct" command line arguement
     if(command == "struct"){
 
         // Finds list of command arguements
@@ -297,30 +285,44 @@ int main(int argc, char* const argv[]){
                 cout<<"i: "<<i<<" j: "<<j<<" size: "<<order[i].rule.size()<<" value: "<<order[i].rule[j]<<endl;
             }
         }*/
+
+        // Main "json" vector organized into JSON style tree
         vector<Obj> jsonTree;
+
+        // Reusable row and column data stores
         vector<Column> row;
         vector<string> columnData;
-        int i = 1;
-        while(getline(file,line) && i < 50){
+        //int i = 1;
+        while(getline(file,line)){
             //cout<<"While"<<endl;
+
+            // Decodes the line with the coma positions
             row = DecodeRow(line, MapSV(line, ','));
+            // Scrubs out the redundant data within the column objects
             columnData = SanitizeRow(row);
             
             // Start the JSON building process
             //cout<<"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"<<endl;
             buildTree(0, columnData, order, jsonTree);
             //break;
-            i++;
+            //i++;
         }
 
         file.close();
+
+        // Creates the JSON file
         ofstream jsonFile;
         jsonFile.open("data.json");
         //cout<<"Tree: "<<jsonTree.size()<<endl;
+
+        // JSON file text
         string result;
         outputJSON(0,jsonTree,result);
         //cout<<result;
         jsonFile << result;
         jsonFile.close();
+        /*for(int i = 0; i < jsonTree.size(); ++i){
+            cout<<"branch "<<i<<" has "<<jsonTree[i].obj.size()<<" entries."<<endl;
+        }*/
     }
 }
