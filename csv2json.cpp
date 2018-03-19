@@ -84,9 +84,8 @@ vector<Column> DecodeRow(string str, vector<size_t> map){
 string trim(const string& str)
 {
     size_t first = str.find_first_not_of(" \n\t\r\v\f");
-    if (string::npos == first)
-    {
-        return str;
+    if (string::npos == first){
+        return "NONE";
     }
     size_t last = str.find_last_not_of(" \n\t\r\v\f");
     return str.substr(first, (last - first + 1));
@@ -137,8 +136,9 @@ vector<Rule> CreateRules(string str, vector<size_t> map){
     return rules;
 }
 // Organizes rows columns into a vector with a JSON style hierarchy 
-void buildTree(int i, const vector<string> &column, const vector<Rule> &order, vector<Obj> &branch){
+void buildTree(int i, vector<string> &column, const vector<Rule> &order, vector<Obj> &branch){
 
+    //cout<<"---------------------"<<endl;
     // Check if there is any work left to do in order set
     if(i < order.size()){
         for(int j = 0; j < order[i].rule.size(); ++j){
@@ -150,8 +150,9 @@ void buildTree(int i, const vector<string> &column, const vector<Rule> &order, v
             int pos = order[i].rule[j];
             Obj temp;
             temp.name = column[pos];
+            /*if(temp.name == "")
+                temp.name = "NO ST NUM";*/
             //cout<<temp.name.length()<<" "<<temp.name<<endl;
-            //temp.name = column[pos];
 
             // Don't iterate is the branch is empty
             if(branch.size() < 1){
@@ -167,7 +168,8 @@ void buildTree(int i, const vector<string> &column, const vector<Rule> &order, v
 
                     // If value isn't unique, save position for 
                     //   the next level of the heirarchy
-                    if(branch[k].name == column[i]){
+                    if(branch[k].name == temp.name){
+                        //cout<<"BREAK!"<<endl;
                         pos = k;
                         break;
                     }
@@ -183,7 +185,6 @@ void buildTree(int i, const vector<string> &column, const vector<Rule> &order, v
                 }
             }
 
-            // Recall function at a lower level of the JSON heirarchy
             buildTree(i+1, column, order, branch[pos].obj);
         }
     }   
@@ -264,18 +265,22 @@ int main(int argc, char* const argv[]){
             }
         }*/
         vector<Obj> jsonTree;
+        vector<Column> row;
+        vector<string> columnData;
         int i = 1;
-        while(getline(file,line) && i < 3){
+        while(getline(file,line) && i < 50){
             //cout<<"While"<<endl;
-            vector<Column> row = DecodeRow(line, MapSV(line, ','));
-            const vector<string> columnData = SanitizeRow(row);
+            row = DecodeRow(line, MapSV(line, ','));
+            columnData = SanitizeRow(row);
             
             // Start the JSON building process
+            //cout<<"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"<<endl;
             buildTree(0, columnData, order, jsonTree);
-            break;
-            //i++;
+            //break;
+            i++;
         }
-
+        //file.close();
+        cout<<"Tree: "<<jsonTree.size()<<endl;
         outputJSON(0, jsonTree);
 
         /*vector<Column> csvMap;
