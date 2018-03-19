@@ -192,7 +192,7 @@ void buildTree(int i, vector<string> &column, const vector<Rule> &order, vector<
     return;
 }
 // Prints JSON
-void outputJSON(int i, vector<Obj> &branch){
+/*void coutJSON(int i, vector<Obj> &branch){
     string tabs;
     if( i == 0 )
         cout<<"{"<<endl;
@@ -221,6 +221,39 @@ void outputJSON(int i, vector<Obj> &branch){
     }
     if( i == 0 )
         cout<<"}"<<endl;
+
+    return;
+}*/
+
+void outputJSON(int i, vector<Obj> &branch, string &result){
+    string tabs;
+    if( i == 0 )
+        result+="{\n";
+    for(int j = 0; j <= i; ++j){
+        tabs+="  ";
+    }
+
+    for(int j = 0; j < branch.size(); ++j){
+        //cout<<branch[j].name<<endl;
+        //cout<<tabs<<"\""<<branch[j].name<<"\":{"<<endl;
+
+        if(!branch[j].obj.empty()){
+            result+=tabs+"\""+branch[j].name+"\":{\n";
+            outputJSON(i+1, branch[j].obj, result);
+            result+=tabs+"}";
+        }
+        else{
+            result+=tabs+"\""+branch[j].name+"\":{}";
+        }
+
+
+        if(j < branch.size() - 1)
+            result+=",\n";
+        else
+            result+="\n";
+    }
+    if( i == 0 )
+        result+="}\n";
 
     return;
 }
@@ -279,32 +312,15 @@ int main(int argc, char* const argv[]){
             //break;
             i++;
         }
-        //file.close();
+
+        file.close();
+        //ofstream jsonFile{"data.json"};
+        //jsonfile.open ("data.json");
         cout<<"Tree: "<<jsonTree.size()<<endl;
-        outputJSON(0, jsonTree);
-
-        /*vector<Column> csvMap;
-        for( int i = 0; i < order.size(); ++i){
-
-            //string header = getline(file,line);
-            for( int i = 0; i < header.size(); ++i){
-                if(i == 0)
-                    order.push_back(subArgs.substr(0, comma[i]));
-
-                if( i == comma.size() ){
-                    order.push_back(subArgs.substr(comma[i-1] + 1));
-                }
-                else{
-                    size_t length = comma[i+1] - comma[i];
-                     order.push_back(subArgs.substr(comma[i] + 1, length - 1));   
-                 }
-            }*/
-            /*while(getline(file, line)){
-        
-            }
-            //data.push_back(element);
-            file.clear();
-            file.seekg(0, ios::beg);
-        }*/
+        string result;
+        outputJSON(0,jsonTree,result);
+        cout<<result;
+        /*jsonFile << outputJSON(0, jsonTree, result);
+        jsonFile.close();*/
     }
 }
