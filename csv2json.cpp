@@ -13,10 +13,8 @@
  * 
 ***/
 #include <fstream>
-#include <iostream>
 #include <string>
 #include <vector>
-#include <cctype>
 
 using namespace std;
 
@@ -107,7 +105,6 @@ vector<string> SanitizeRow(vector<Column> row){
     }
     return list;
 }
-// 3AM FIRE! Lulz
 // Creates the JSON Structure Rules
 //      i.e how the user wants to rearrange their JSON heirarchy
 //          depending on the columns of their csv
@@ -146,26 +143,17 @@ vector<Rule> CreateRules(string str, vector<size_t> map){
 // Organizes row columns into a vector with a JSON style hierarchy 
 void buildTree(int i, vector<string> &column, const vector<Rule> &order, vector<Obj> &branch){
 
-    //cout<<"---------------------"<<endl;
     // Check if there is any work left to do in order set
     if(i < order.size()){
         for(int j = 0; j < order[i].rule.size(); ++j){
-            /*cout<<"i: "<<i<<" j: "<<j<<endl;
-            cout<<"sizeO: "<<order.size()<<" sizeR: "<<order[i].rule.size()<<endl;
-            cout<<"************************"<<endl;*/
 
             // Position of column
             int pos = order[i].rule[j];
             Obj temp;
             temp.name = column[pos];
-            /*if(temp.name == "")
-                temp.name = "NO ST NUM";*/
-            //cout<<temp.name.length()<<" "<<temp.name<<endl;
 
             // Don't iterate is the branch is empty
             if(branch.size() < 1){
-                /*cout<<"PUSH 1"<<endl;
-                cout<<"level= "<<i<<" data= "<<temp.name<<endl;*/
                 branch.push_back(temp);
                 pos = 0;
             }
@@ -177,7 +165,6 @@ void buildTree(int i, vector<string> &column, const vector<Rule> &order, vector<
                     // If value isn't unique, save position for 
                     //   the next level of the heirarchy
                     if(branch[k].name == temp.name){
-                        //cout<<"BREAK!"<<endl;
                         pos = k;
                         break;
                     }
@@ -185,8 +172,6 @@ void buildTree(int i, vector<string> &column, const vector<Rule> &order, vector<
                     // Push if unique, save position for
                     //   the next level in heirarchy
                     else if(k == branch.size() - 1){
-                        /*cout<<"PUSH 2"<<endl;
-                        cout<<"level= "<<i<<" data= "<<temp.name<<endl;*/
                         branch.push_back(temp);
                         pos = k+1;
                     }
@@ -215,8 +200,6 @@ void outputJSON(int i, vector<Obj> &branch, string &result){
 
     // Starts at the top of the tree and searches down each branch
     for(int j = 0; j < branch.size(); ++j){
-        //cout<<branch[j].name<<endl;
-        //cout<<tabs<<"\""<<branch[j].name<<"\":{"<<endl;
 
         // If a branch has children branches it recalls the outputJSON
         if(!branch[j].obj.empty()){
@@ -242,6 +225,8 @@ void outputJSON(int i, vector<Obj> &branch, string &result){
     return;
 }
 
+
+//************************** MAIN **************************
 int main(int argc, char* const argv[]){
 
     // Pulls in file
@@ -257,7 +242,6 @@ int main(int argc, char* const argv[]){
     // Decodes command
     string args = string(argv[2]);
     string command = args.substr(0,args.find('['));
-    //cout<<command<<endl;
 
     // "struct" command line arguement
     if(command == "struct"){
@@ -265,26 +249,9 @@ int main(int argc, char* const argv[]){
         // Finds list of command arguements
         size_t length = args.find(']') - args.find('[');
         string subArgs = args.substr(args.find('[') + 1, length - 1);
-        //cout<<subArgs<<endl;
-        
-        // Locates commas
-        //vector<size_t> comma = MapSV(subArgs, ',');
-        //cout<<comma.size()<<endl;
-
-        // Decodes the command arguements
-        /*vector<Column> order = DecodeRow(subArgs, comma);
-        for( int i = 0; i < order.size(); ++i){
-            cout<<"head= "<<order[i].head<<" tail= "<<order[i].tail<<" data= "<<order[i].data<<endl;
-            //cout<<"data= "<<order[i].data<<endl;
-        }*/
 
         // Creates the JSON Structure Rules
         const vector<Rule> order = CreateRules(subArgs, MapSV(subArgs, ','));
-        /*for( int i = 0; i < order.size(); ++i){
-            for( int j = 0; j < order[i].rule.size(); ++j){
-                cout<<"i: "<<i<<" j: "<<j<<" size: "<<order[i].rule.size()<<" value: "<<order[i].rule[j]<<endl;
-            }
-        }*/
 
         // Main "json" vector organized into JSON style tree
         vector<Obj> jsonTree;
@@ -292,9 +259,8 @@ int main(int argc, char* const argv[]){
         // Reusable row and column data stores
         vector<Column> row;
         vector<string> columnData;
-        //int i = 1;
+
         while(getline(file,line)){
-            //cout<<"While"<<endl;
 
             // Decodes the line with the coma positions
             row = DecodeRow(line, MapSV(line, ','));
@@ -302,10 +268,7 @@ int main(int argc, char* const argv[]){
             columnData = SanitizeRow(row);
             
             // Start the JSON building process
-            //cout<<"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"<<endl;
             buildTree(0, columnData, order, jsonTree);
-            //break;
-            //i++;
         }
 
         file.close();
@@ -313,16 +276,13 @@ int main(int argc, char* const argv[]){
         // Creates the JSON file
         ofstream jsonFile;
         jsonFile.open("data.json");
-        //cout<<"Tree: "<<jsonTree.size()<<endl;
 
         // JSON file text
         string result;
         outputJSON(0,jsonTree,result);
-        //cout<<result;
+
+        // Writes to JSON file
         jsonFile << result;
         jsonFile.close();
-        /*for(int i = 0; i < jsonTree.size(); ++i){
-            cout<<"branch "<<i<<" has "<<jsonTree[i].obj.size()<<" entries."<<endl;
-        }*/
     }
 }
